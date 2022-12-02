@@ -27,6 +27,7 @@ public class Day01 extends AocCore {
 				calories.add(0);
 			}
 		}
+		
 		Integer result1 = calories.stream()
 									.sorted((a,b) -> b-a)
 									.findFirst().get();
