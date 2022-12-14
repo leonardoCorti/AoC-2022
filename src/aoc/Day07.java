@@ -23,6 +23,7 @@ public class Day07 extends AocCore {
 		public Folder parentFolder;
 		public String name;
 		public abstract int getSize();
+		
 	}
 	
 	public class Folder extends Resource{
@@ -74,7 +75,7 @@ public class Day07 extends AocCore {
 		allFolders.add(root);
 		
 		for(String line : input) {
-			System.out.println(line);
+//			System.out.println(line);
 			var partsOfLine = line.split(" ");
 			
 			String firstPartLine = partsOfLine[0];
@@ -117,16 +118,15 @@ public class Day07 extends AocCore {
 		int pt1 = allFolders.stream()
 				.map(fol -> fol.getSize())
 				.mapToInt(Integer::intValue)
-				.filter(size->size<sizeAtMost)
+				.filter(size -> size<sizeAtMost)
 				.sum();
 		
 		int spaceAvaible = 70000000;
 		int freeSpaceRequested = 30000000;
 		int spaceToFree = freeSpaceRequested - ( spaceAvaible - root.getSize() );
-		System.out.println("  "+spaceToFree);
 		Folder folderToDelete = allFolders.stream()
 				.filter(e -> e.getSize()>=spaceToFree)
-				.sorted((e1,e2)-> e1.getSize()-e2.getSize())
+				.sorted((e1,e2) -> e1.getSize()-e2.getSize())
 				.findFirst()
 				.get();
 		int pt2 = folderToDelete.getSize();

@@ -1,0 +1,226 @@
+package aoc;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.LinkedList;
+import java.util.List;
+
+public class Day11pt2 extends AocCore {
+
+	public Day11pt2() {
+		super("11");
+	}
+	
+	public static void main(String[] args) {
+		new Day11pt2();
+	}
+
+	public class monkey{
+		List<Double> items;
+		boolean isOperationSum; //if not, it is multiplication
+		boolean isOperationNumberOld;
+		double operationNumber;
+		int test; //divisible by
+		int ifTrue;
+		int ifFalse;
+		int itemAnalyzed;
+		
+		public monkey(List<Double> items, boolean isOperationSum, int test, int ifTrue, int ifFalse, Long operationNumber) {
+			super();
+			this.items = items;
+			this.isOperationSum = isOperationSum;
+			this.test = test;
+			this.ifTrue = ifTrue;
+			this.ifFalse = ifFalse;
+			this.operationNumber = operationNumber;
+			itemAnalyzed = 0;
+		}
+		
+		public monkey(String data) {
+			/*
+			 * 0: nothing
+			 * 1: items
+			 * 2: isoperationsum and operationNumber
+			 * 3: test
+			 * 4: iftrue
+			 * 5: iffalse
+			 */
+			
+			String[] dataSplitted = data.split("\r\n");
+			
+			this.items = new LinkedList<>();
+			var tmp = dataSplitted[1].split("Starting items:");
+			var itemsNumbers = tmp[1].strip().split(",");
+			
+			for(String item : itemsNumbers) {
+				this.items.add( Double.parseDouble( item.strip() ));
+			}
+			
+			
+			
+			this.isOperationSum = dataSplitted[2].contains("+");
+			tmp = dataSplitted[2].split(" ");
+			String operationNumberString = tmp[tmp.length-1].strip();
+			this.isOperationNumberOld = operationNumberString.equals("old");
+			this.operationNumber = isOperationNumberOld ? 0 : Long.parseLong( operationNumberString ) ;
+			
+			tmp = dataSplitted[3].split(" ");
+			this.test = Integer.parseInt( tmp[tmp.length-1] );
+			
+			tmp = dataSplitted[4].split(" ");
+			this.ifTrue = Integer.parseInt( tmp[tmp.length-1] );
+			
+			tmp = dataSplitted[5].split(" ");
+			this.ifFalse = Integer.parseInt( tmp[tmp.length-1] );
+			
+			
+			
+		}
+
+		@Override
+		public String toString() {
+			return "monkey [items=" + items + ", isOperationSum=" + isOperationSum + ", isOperationNumberOld="
+					+ isOperationNumberOld + ", operationNumber=" + operationNumber + ", test=" + test + ", ifTrue="
+					+ ifTrue + ", ifFalse=" + ifFalse + ", itemAnalyzed=" + itemAnalyzed + "]";
+		}
+
+		
+		public double[] analyze(double item) {
+			
+			itemAnalyzed++;
+			
+			double newValue=0;
+			double monkeyToThrow=0;
+			// I assume the monkeys can't throw an item at themselves.
+//			items.remove(
+//					items.indexOf(item)
+//					);
+			
+			if (isOperationNumberOld)
+				operationNumber = item;
+			
+			
+			
+//			boolean isItemDivisibleByTest;
+//			isItemDivisibleByTest = item%test==0;
+//			if(isOperationSum) {
+//				newValue = item+operationNumber;
+//			}else {
+//				if(isItemDivisibleByTest) {
+//					newValue = item;
+//				}else {
+//					newValue = item * operationNumber;
+//				}
+//			}
+			
+			if(isOperationSum) {
+				newValue = item + operationNumber;
+			}else {
+				newValue = mcm(item,operationNumber);
+			}
+			
+//			newValue = isOperationSum ? item + operationNumber : item * operationNumber;			
+			
+//			newValue = newValue/3; //uncomment for part 1
+			
+			monkeyToThrow = (newValue%test==0) ?  ifTrue : ifFalse;
+			
+			double[] result = {monkeyToThrow , newValue };
+			return result;
+		}
+
+		
+
+		public void addItem(double i) {
+			this.items.add(i);			
+		}
+
+		public void remove(double item) {
+			this.items.remove( items.indexOf(item) );
+		}
+
+		
+		
+		
+	}
+
+	public double  mcm(double a,double b)
+	{
+		double result = Math.abs(a*b)/gcd(a,b);
+		
+		return result;
+	}
+
+	
+	public double gcd(double a, double b) {
+		
+		if (b==0) return a;
+		return gcd(b,a%b);
+	}
+	
+	@Override
+	public void solve(List<String> input) {
+		
+		
+		double a = 30, b = 20, gcdValue;
+		gcdValue = gcd(a,b);
+		System.out.println(gcdValue+" and "+mcm(a,b));
+		/*
+		 * 20 rounds
+		 * find the 2 most active monkeys
+		 * multiply how many times they inspected items
+		 */
+		
+		try {
+			
+			String[] inputString = Files.readString(inputFile.toPath()).split("\r\n\r\n");
+			
+			List<monkey> sillies = new LinkedList<>();
+			
+			for(String data : inputString)
+				sillies.add( new monkey(data));
+			sillies.forEach(System.out::println);
+			
+			int numberOfRounds = 1000;	// part 1
+//			int numberOfRounds = 10000;	// part 2
+
+			for (int i = 0; i < numberOfRounds; i++) {
+				for(monkey aMonkey : sillies) {
+					var items = aMonkey.items;
+					for(double item : items) {
+						
+						double[] response =  aMonkey.analyze(item);
+						
+						sillies.get( (int)response[0]).addItem(response[1]);
+					}
+					aMonkey.items.clear();
+				}
+				
+				System.out.println("round " +i+ " finished");
+				sillies.forEach(System.out::println);
+				
+			}
+			
+			double pt1 = sillies.stream()
+					.map(m -> m.itemAnalyzed)
+					.mapToDouble(Double::valueOf)
+					.map(i -> -i)
+					.sorted()
+					.map(i -> -i)
+					.limit(2)
+					.reduce((e1, e2)->e1*e2).getAsDouble();
+			
+			
+			System.out.println("pt1 : "+pt1);
+			
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+	}
+
+}

@@ -67,7 +67,7 @@ public class Day10 extends AocCore {
 
 	private void crtUpdate(StringBuilder crt, int cycle, int register) {
 		
-		crt.append(  ( Math.abs( cycle%40 - register )<2 ) ? "#" : "."  );
+		crt.append(  ( Math.abs( cycle%40 - register )<2 ) ? "█" : " "  );
 		
 		if(cycle%40==0) crt.append("\n");
 		
